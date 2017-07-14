@@ -1,0 +1,27 @@
+sudo: required
+language: python
+python:
+- '3.6'
+services:
+- docker
+before_install:
+- echo "$TRAVIS_COMMIT"
+script:
+- docker build -t "$DOCKER_USER/hitman_firehose" .
+- docker tag "$DOCKER_USER/hitman_firehose:latest" "$DOCKER_USER/hitman_firehose:$(echo $TRAVIS_COMMIT|
+  cut -c-10)"
+- docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+- docker push "$DOCKER_USER/hitman_firehose"
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_014e04d8df48_key -iv $encrypted_014e04d8df48_iv
+  -in deploy_key.enc -out /tmp/deploy_key -d
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/deploy_key
+- ssh-add /tmp/deploy_key
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ssh -o StrictHostKeyChecking=no ubuntu@hitman.tmacs.space "./deploy.sh firehose
+    auth $(echo $TRAVIS_COMMIT| cut -c-10)"
+  on:
+    branch: master
