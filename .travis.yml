@@ -1,19 +1,17 @@
 sudo: required
 language: python
-python:
-- '3.6'
 services:
 - docker
 before_install:
 - echo "$TRAVIS_COMMIT"
 script:
 - docker build -t "$DOCKER_USER/hitman_firehose" .
-- docker tag "$DOCKER_USER/hitman_firehose:latest" "$DOCKER_USER/hitman_firehose:$(echo $TRAVIS_COMMIT|
-  cut -c-10)"
+- docker tag "$DOCKER_USER/hitman_firehose:latest" "$DOCKER_USER/hitman_firehose:$(echo
+  $TRAVIS_COMMIT| cut -c-10)"
 - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
 - docker push "$DOCKER_USER/hitman_firehose"
 before_deploy:
-- openssl aes-256-cbc -K $encrypted_014e04d8df48_key -iv $encrypted_014e04d8df48_iv
+- openssl aes-256-cbc -K $encrypted_730afec5a6b6_key -iv $encrypted_730afec5a6b6_iv
   -in deploy_key.enc -out /tmp/deploy_key -d
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/deploy_key
@@ -25,3 +23,7 @@ deploy:
     auth $(echo $TRAVIS_COMMIT| cut -c-10)"
   on:
     branch: master
+env:
+  global:
+  - secure: eIcell7vOFspwy4Dqee0+RtNeP3zuaXvfosupzvLlCnWpzpnsevVyOXqIAQ0wmK05VxnWkc/j3LF7StEImWCEcQ1nd1Hfpi7qh/m+NhOFXCvQVwWwn+vw6fs0kuZkR9sdGhqGtkQmfl750PT3qfc5kYhSrSUXDrJsl5VOQzI1y7Kh4t0KeUgvip6YYaEoB10jDs1k4/0vUlzmqlsxbpoMK6VEuOa+Nkhxs8tgcVfmBLjozkb7xuCtBYC4wUOJkZgHKqZi+Wk/qICFgntuaoUBQc0MzSG0RUVtEfgytzj+RDdRqXwT/LGpJIZgNmzbVZFY3UHdKW6UBjVXecwY3oBEptzTPRkgrMbN4Wavs0g1gsFVdDesTCpOg85NAUv9p8Boa8UwZwXzgLo2lvdaFOv4zpJr7Mua46fUIe6ewrw7r4em77PJbiuLjbQaisqJ/jZgchC+LNYQPWqLXGjwmnbXhl4jdRNx56Yup2UhFOGBZXRK9VCzK2J3D+th1VcNQ7glEHzmBCU8yB8m16BhLieM2UDHFPoz+PuWMof50lD2240U785tOgoXXqNRmdqZN4RmBKEA4EhUzR6+UfZwNincuIUmMHO9IFA7QfVEVShY5GApItGjBx89xjQEKxt9sJG+WyMZkzSeOL2AAjhQlXPfhH+jAnlYS19FXRPdUhIP9c=
+  - secure: P3h/SbgbkpL+WCa6uzVWf7bYv0Fg9BJbQBtJPTYxLacFqLMRLfYvrOO1BvHR+7w1n5W9jke/jQ/fewK1kuRr5rvokJ3CTHimTVfZPTaJrKRVcrzkyzKeWtFsJ8fg5mfzgzeS0AZJCcVUJZAnUOJD4PY3b2UDtrzZXrOBk64oW+M9KNUKHw/4D4H4VRpN3p5yaUOsa2HWgXDGSRQQhy+eJ41mgt14OMzOUzV/QIncdKnIe34Isu62oVvD6wHwhma7wH9OEQ7X5wJmym5xrSSH10BI3IEbDaP0rScp8nNfLjwInW9zcX4+o2C1xvcCQVSBc+65PvOtloiUtx7DjINwGnHLlznnZLncmDVdYpDVYJtLfIB4Hkg8X3v3gN1cQ5pYzEGPPGCJX9P7FkE/MyogqIQk4ZIaqkPuEF1nRIoKyXq68k8ymsCsdfZFS3aqWFtuh+/tLLreoVF53QLTK/xHrn0ndlAqxdv0LJ+9oonMm1mtJu167UtOkiG6RO/3xn4bvb+uLpM3Dxqo/jvsP5hE0/OPe3TH3clrmMALoF3uFy1Ou7j0YHvLMWVN92bwWqVy0nd+OSN2TABM/iVk7UXQjeMh1wSs1J9HoZM0qyU3Rpk8TSgoDdqa7IDr8AtZ8SXLkTRcBySCEBNj/ThGS1yb8/E+BHHwLSZkH9FNVdu1OGk=
