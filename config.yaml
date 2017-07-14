@@ -1,0 +1,5 @@
+meta:
+  app: slack-firehose
+
+crypto:
+  slack: <DEV_KEY_REPLACE_ME>
