@@ -19,8 +19,8 @@ before_deploy:
 deploy:
   provider: script
   skip_cleanup: true
-  script: ssh -o StrictHostKeyChecking=no ubuntu@hitman.tmacs.space "./deploy.sh firehose
-    auth $(echo $TRAVIS_COMMIT| cut -c-10)"
+  script: ssh -o StrictHostKeyChecking=no ubuntu@hitman.tmacs.space "./deploy.sh deploy
+    firehose $(echo $TRAVIS_COMMIT| cut -c-10)"
   on:
     branch: master
 env:
