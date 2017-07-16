@@ -21,6 +21,7 @@ class Reader(Thread):
 		self.daemon = True					# die on process exit
 		self._log = _log.getChild('reader')
 		self._id, self._user, = self._retrieve_id()
+		self._channel_cache = {}
 
 	def _handle_event(self, event):
 		self._log.debug('got event type: %s'%event['type'])
@@ -31,6 +32,12 @@ class Reader(Thread):
 		if not resp['ok']:
 			raise Exception('Invalid slack credentials')
 		return resp['user_id'], resp['user']
+
+	def _is_public(self, channel):
+		if not channel in self._channel_cache:
+			private = [ch['id'] for ch in self._client.api_call('im.list').get('ims', [])]
+			self._channel_cache[channel] = not channel in private
+		return self._channel_cache[channel]
 	
 	@property
 	def events(self):
@@ -38,6 +45,7 @@ class Reader(Thread):
 			try:
 				event = self._output.get(True, 5)
 				if event:
+					event['public'] = self._is_public(event['channel'])
 					yield event
 			except QueueEmpty:
 				pass
@@ -53,7 +61,7 @@ class Reader(Thread):
 				while not self._exit.isSet():
 					events = self._client.rtm_read()
 					for event in events:
-						if 'user' in event and event['user'] == self._id:
+						if ('user' in event and event['user'] == self._id) or not 'channel' in event:
 							continue # Discard messages sent by the logged in user
 						self._handle_event(event)
 			else:
