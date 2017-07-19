@@ -1,10 +1,10 @@
 from util.config import config
 from util.log import getLogger
 from pubsub import Publisher
-from slackclient import SlackClient
+from slack import SlackClient
 import time
-from Queue import Queue
-from Queue import Empty as QueueEmpty
+from queue import Queue
+from queue import Empty as QueueEmpty
 from threading import Thread, Event
 import re
 import json
@@ -28,15 +28,18 @@ class Reader(Thread):
 		self._output.put(event)
 
 	def _retrieve_id(self):
-		resp = json.loads(self._client.server.api_call('/auth.test'))
-		if not resp['ok']:
+		# resp = json.loads(self._client.api_call('auth.test'))
+		success, resp = self._client.api_call('auth.test')
+		if not success:
 			raise Exception('Invalid slack credentials')
 		return resp['user_id'], resp['user']
 
 	def _is_public(self, channel):
 		if not channel in self._channel_cache:
-			private = [ch['id'] for ch in self._client.api_call('im.list').get('ims', [])]
-			self._channel_cache[channel] = not channel in private
+			success, resp = self._client.api_call('im.list')
+			if success:
+				private = [ch['id'] for ch in resp.get('ims', [])]
+				self._channel_cache[channel] = not channel in private
 		return self._channel_cache[channel]
 	
 	@property
@@ -59,8 +62,8 @@ class Reader(Thread):
 				self._log.debug('connected, waiting for events...')
 				delay = 2
 				while not self._exit.isSet():
-					events = self._client.rtm_read()
-					for event in events:
+					event = self._client.rtm_read()
+					if event:
 						if ('user' in event and event['user'] == self._id) or not 'channel' in event:
 							continue # Discard messages sent by the logged in user
 						self._handle_event(event)
@@ -75,6 +78,7 @@ class Reader(Thread):
 	def join(self):
 		self._exit.set()
 		self._log.debug('reader exiting...')
+		self._client.rtm_close()
 		return super(Reader, self).join()					
 
 class Stream:
@@ -121,7 +125,7 @@ class Filter(object):
 
 	def __call__(self, msg):
 		passed = True
-		for k, v in self._filter.iteritems():
+		for k, v in self._filter.items():
 			if not self._check(k,v,msg):
 				passed = False
 				break
@@ -131,7 +135,7 @@ class RegexFilter(Filter):
 	def __init__(self, **kwargs):
 		Filter.__init__(self, **kwargs)
 		compiled = dict()
-		for k,v in self._filter.iteritems():
+		for k,v in self._filter.items():
 			if isinstance(v, str):
 				compiled[k] = re.compile(v)
 		self._filter.update(compiled)
@@ -146,7 +150,7 @@ class RegexFilter(Filter):
 class ChannelFilter(Filter):
 	@property
 	def topic(self):
-		return self._topic + self._lastCh.decode()
+		return self._topic + self._lastCh
 
 	def _check(self,k,v, msg):
 		if 'channel' in msg:
