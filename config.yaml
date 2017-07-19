@@ -1,5 +1,12 @@
 meta:
-  app: slack-firehose
+  app: firehose
 
 crypto:
-  slack: <DEV_KEY_REPLACE_ME>
+  slack: <DEV_KEY_CHANGE_ME>
+
+slack:
+  ignore:
+    - presence_change
+    - desktop_notification
+    - user_typing
+    - member_joined_channel

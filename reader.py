@@ -63,9 +63,7 @@ class Reader(Thread):
 				delay = 2
 				while not self._exit.isSet():
 					event = self._client.rtm_read()
-					if event:
-						if ('user' in event and event['user'] == self._id) or not 'channel' in event:
-							continue # Discard messages sent by the logged in user
+					if event and not event.get('user') == self._id and 'channel' in event:
 						self._handle_event(event)
 			else:
 				self._log.debug('connection failed')
