@@ -10,3 +10,4 @@ slack:
     - desktop_notification
     - user_typing
     - member_joined_channel
+    - im_marked
